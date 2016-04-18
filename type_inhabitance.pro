@@ -22,12 +22,41 @@ ts(arrow(
                arrow(gamma,ni),
                arrow(gamma,delta)))).
 tu(arrow(arrow(alpha,alpha),alpha)).
+tt(arrow(arrow(beta,alpha),
+         arrow(
+               arrow(alpha,beta),
+               beta))).
+
+
+/* deconstruct_type(-ArgTypes, -ResultType, +Type) */ 
+deconstruct_type([], Type, Type) :- atom(Type).
+deconstruct_type([Rho|ArgTypes], ResultType, arrow(Rho, Sigma)) :-
+        deconstruct_type(ArgTypes, ResultType, Sigma).
+
+/* infers_types(+Gamma, -Terms, +Types) */
+infers_types(_, [], []).
+infers_types(Gamma, [Term|Terms], [Type|Types]) :-
+        infers_type(Gamma, Term, Type),
+        infers_types(Gamma, Terms, Types).
+
+/* construct_application(+Function, +Args, -Application) */
+construct_application(F, [], F).
+construct_application(F, [Arg|Args], Application) :-
+        construct_application(app(F, Arg), Args, Application).
 
 /* infers_type(+Gamma, -Term, +Type). */
 
 infers_type(Gamma, Var, Type) :- member([Var,Type],Gamma).
 infers_type(Gamma, lambda(Var,Term), arrow(Rho, Sigma)) :-
         infers_type([[Var,Rho]|Gamma], Term, Sigma).
-infers_type(Gamma, app(Var, Arg), Sigma) :-
-        member([Var,arrow(Rho, Sigma)], Gamma),
-        infers_type(Gamma, Arg, Rho).
+infers_type(Gamma, Application, Sigma) :-
+        /*
+        member([Var, arrow(Rho1,arrow(Rho2,...,arrow(Rhon,Sigma)))], Gamma),
+        infers_type(Gamma, Term1, Rho1),
+        ...,
+        infers_type(Gamma, Termn, Rhon),
+          Application = app(...app(Var, Term1), Term2, ..., Termn)*/
+        member([Var, Type], Gamma),
+        deconstruct_type(ArgTypes, Sigma, Type),
+        infers_types(Gamma, Terms, ArgTypes),
+        construct_application(Var, Terms, Application).
