@@ -33,30 +33,33 @@ deconstruct_type([], Type, Type) :- atom(Type).
 deconstruct_type([Rho|ArgTypes], ResultType, arrow(Rho, Sigma)) :-
         deconstruct_type(ArgTypes, ResultType, Sigma).
 
-/* infers_types(+Gamma, -Terms, +Types) */
-infers_types(_, [], []).
-infers_types(Gamma, [Term|Terms], [Type|Types]) :-
-        infers_type(Gamma, Term, Type),
-        infers_types(Gamma, Terms, Types).
+/* infers_types(+Gamma, -Terms, +Types, +VisitedTypes) */
+infers_types(_, [], [], _).
+infers_types(Gamma, [Term|Terms], [Type|Types], VT) :-
+        not(member(Type, VT)),
+        infers_type(Gamma, Term, Type, VT),
+        infers_types(Gamma, Terms, Types, VT).
 
 /* construct_application(+Function, +Args, -Application) */
 construct_application(F, [], F).
 construct_application(F, [Arg|Args], Application) :-
         construct_application(app(F, Arg), Args, Application).
 
-/* infers_type(+Gamma, -Term, +Type). */
+/* infers_type(+Gamma, -Term, +Type, +VisitedTypes). */
 
-infers_type(Gamma, Var, Type) :- member([Var,Type],Gamma).
-infers_type(Gamma, lambda(Var,Term), arrow(Rho, Sigma)) :-
-        infers_type([[Var,Rho]|Gamma], Term, Sigma).
-infers_type(Gamma, Application, Sigma) :-
+/* infers_type(_, _, Type, VT) :- member(Type, VT), !, fail. */
+infers_type(Gamma, lambda(Var,Term), arrow(Rho, Sigma), VT) :-
+        not(member(arrow(Rho, Sigma), VT)),
+        infers_type([[Var,Rho]|Gamma], Term, Sigma, [arrow(Rho,Sigma)|VT]).
+infers_type(Gamma, Application, Sigma, VT) :-
         /*
         member([Var, arrow(Rho1,arrow(Rho2,...,arrow(Rhon,Sigma)))], Gamma),
         infers_type(Gamma, Term1, Rho1),
         ...,
         infers_type(Gamma, Termn, Rhon),
           Application = app(...app(Var, Term1), Term2, ..., Termn)*/
+        not(member(Sigma, VT)),
         member([Var, Type], Gamma),
         deconstruct_type(ArgTypes, Sigma, Type),
-        infers_types(Gamma, Terms, ArgTypes),
+        infers_types(Gamma, Terms, ArgTypes, [Sigma|VT]),
         construct_application(Var, Terms, Application).
