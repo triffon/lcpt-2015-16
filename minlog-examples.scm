@@ -1,0 +1,120 @@
+(add-pvar-name "A" (make-arity))
+
+(set-goal (pf "A -> A"))
+(assume "u")
+(use "u")
+(save "IdentityTheorem")
+
+(add-pvar-name "B" (make-arity))
+
+(set-goal (pf "A -> B -> A"))
+(assume "u")
+(assume "v")
+(use "u")
+
+(add-pvar-name "C" (make-arity))
+
+(set-goal (pf "(A -> B -> C) -> (A -> B) -> A -> C"))
+(assume "u")
+(assume "v")
+(assume "w")
+(use "u")
+; сега трябва да докажем A и B
+                                        ; първо A
+(use "w")
+                                        ; После B
+(use "v")
+(use "w")
+
+(set-goal (pf "(A -> C) -> (B -> C) -> A ord B -> C"))
+(assume "u")
+(assume "v")
+(assume "w")
+(elim "w")
+(use "u")
+(use "v")
+
+(set-goal (pf "A & B -> B & A"))
+(assume "u")
+(split)
+(use "u")
+(use "u")
+
+(set-goal (pf "(A & B -> C) -> B -> A -> C"))
+(assume "u")
+(assume "v")
+(assume "w")
+(use "u")
+(split)
+(use "w")
+(use "v")
+
+(set-goal (pf "(A & B -> C) -> B -> A -> C"))
+(prop)
+
+(set-goal (pf "((A -> B) -> A) -> A"))
+(assume "u")
+(use "Stab")
+(assume "v")
+(use "v")
+(use "u")
+(assume "w")
+(use "Efq")
+(use "v")
+(use "w")
+
+(set-goal (pf "(A & B -> F) -> (A -> F) ord (B -> F)"))
+(assume "u")
+(use "Stab")
+(assume "v")
+(use "u")
+(split)
+                                        ; A
+(use "Stab")
+(assume "w")
+(use "v")
+(intro 0)
+(use "w")
+                                        ; B
+(use "Stab")
+(assume "w")
+(use "v")
+(intro 1)
+(use "w")
+
+(add-var-name "x" (py "alpha"))
+(add-var-name "y" (py "alpha"))
+(add-pvar-name "P" (make-arity (py "alpha")))
+
+(set-goal (pf "all x (B -> P x) -> B -> all x P x"))
+(assume "u")
+(assume "v")
+(assume "x")
+(use "u")
+(use "v")
+
+(set-goal (pf "all x (P x -> B) -> ex x P x -> B"))
+(assume "u")
+(assume "v")
+(ex-elim "v")
+(assume "x")
+(assume "w")
+(use "u" (pt "x"))
+(use "w")
+
+(set-goal (pf "all x (P x -> B) -> ex x P x -> B"))
+(assume "u")
+(assume "v")
+(ex-elim "v")
+(use "u")
+
+(set-goal (pf "ex x (P x -> F) -> all x P x -> F"))
+(assume "u")
+(assume "v")
+(ex-elim "u")
+(assume "x")
+(assume "w")
+(use "w")
+(use "v")
+
+
